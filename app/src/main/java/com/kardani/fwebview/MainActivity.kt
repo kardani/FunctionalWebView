@@ -15,62 +15,47 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import com.kardani.fwebview.databinding.ActivityMainBinding
-import com.kardani.fwebview.local.UrlHistory
-import org.koin.android.ext.android.inject
+import com.kardani.fwebview.settings.SettingsActivity
+import org.koin.android.viewmodel.ext.android.viewModel
 
 
 @SuppressLint("SetJavaScriptEnabled")
 class MainActivity : AppCompatActivity() {
 
-    val urlHistory : UrlHistory by inject()
+    private val viewModel : MainViewModel by viewModel()
 
     lateinit var binding: ActivityMainBinding
-
-    var loadingTimes = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //changing statusbar color and navigationbar color
-        if (Build.VERSION.SDK_INT >= 21) {
-            val window = this.window
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
-            window.statusBarColor = this.resources.getColor(R.color.app_base_color)
-            window.navigationBarColor = ContextCompat.getColor(this, R.color.app_base_color)
-        }
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding.lifecycleOwner = this
+        binding.viewModel = viewModel
 
-        supportActionBar!!.hide()
+        startActivity(Intent(this, SettingsActivity::class.java))
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        supportActionBar?.apply { hide() }
 
+        // Observer url from ViewModel and load in WebView
+        viewModel.currentUrl.observe(this, Observer{ url ->
+            loadUrl(url)
+        })
 
         binding.webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(viewx: WebView, urlx: String): Boolean {
                 viewx.loadUrl(urlx)
                 return false
             }
-
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                loadingTimes = 0
-                binding.lytProgress.visibility = View.GONE
-            }
-
         }
 
         binding.webView.webChromeClient = object : WebChromeClient(){
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                Log.d("Progress", "onProgressChanged: $newProgress")
-                if(loadingTimes > 1 && newProgress == 100){
-                    binding.lytProgress.visibility = View.GONE
-                    loadingTimes = 0
-                }else if(loadingTimes < 1 && newProgress == 100){
-                    loadingTimes++
-                }else{
-                    binding.lytProgress.visibility = View.VISIBLE
-                }
+
+                viewModel.loadProgress(newProgress)
 
                 super.onProgressChanged(view, newProgress)
             }
@@ -89,14 +74,12 @@ class MainActivity : AppCompatActivity() {
                     return@OnKeyListener false
                 }
 
-
+                viewModel.newUrl(url)
 
                 return@OnKeyListener true
             }
             false
         })
-
-        loadUrl("")
 
         setContentView(binding.root)
     }
@@ -154,10 +137,9 @@ class MainActivity : AppCompatActivity() {
             }
             doubleBackToExitPressedOnce = true
 
-            // toast baraye khorooj az app
             val toast = Toast.makeText(
                 this,
-                "برای خروج دکمه بازگشت را دوباره فشار دهید",
+                "Double press for exit!",
                 Toast.LENGTH_SHORT
             )
             val v = toast.view.findViewById<TextView>(android.R.id.message)

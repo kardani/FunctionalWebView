@@ -25,4 +25,15 @@ class UrlHistory(private val preferences: SharedPreferences) {
         return urls.filter { it.contains(expr) }
     }
 
+    fun getLast() : String{
+
+        val urls = getUrls()
+
+        if(urls.isNullOrEmpty()){
+            return ""
+        }
+
+        return urls.first()
+    }
+
 }
