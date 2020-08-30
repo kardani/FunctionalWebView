@@ -36,13 +36,22 @@ class MainActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
-        startActivity(Intent(this, SettingsActivity::class.java))
+
 
         supportActionBar?.apply { hide() }
 
         // Observer url from ViewModel and load in WebView
         viewModel.currentUrl.observe(this, Observer{ url ->
             loadUrl(url)
+        })
+
+        viewModel.navigateSettings.observe(this, Observer{ navigate ->
+
+            if(!navigate){
+                return@Observer
+            }
+
+            startActivity(Intent(this, SettingsActivity::class.java))
         })
 
         binding.webView.webViewClient = object : WebViewClient() {

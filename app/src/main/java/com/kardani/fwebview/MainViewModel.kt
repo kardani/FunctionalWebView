@@ -8,8 +8,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kardani.fwebview.local.UrlHistory
+import com.kardani.fwebview.utils.LiveEvent
 
 class MainViewModel(private val urlHistory : UrlHistory) : ViewModel() {
+
+
 
     private var _loading = MutableLiveData<Boolean>()
     val loading : LiveData<Boolean> = _loading
@@ -19,6 +22,8 @@ class MainViewModel(private val urlHistory : UrlHistory) : ViewModel() {
 
     private var _suggestedUrls = MutableLiveData<Set<String>>()
     val suggestedUrls : LiveData<Set<String>> = _suggestedUrls
+
+    val navigateSettings = LiveEvent<Boolean>()
 
     init {
         _currentUrl.value = urlHistory.getLast()
@@ -36,8 +41,11 @@ class MainViewModel(private val urlHistory : UrlHistory) : ViewModel() {
     }
 
     fun loadProgress(progress: Int){
-//        Log.d("MainViewModel", "loadProgress: $progress")
         _loading.value = progress < 100
+    }
+
+    fun settingsClick(){
+        navigateSettings.postValue(true)
     }
 
     private fun validUrl(url: String) : Boolean{

@@ -35,7 +35,8 @@
                 android:layout_height="40dp"
                 android:layout_alignParentRight="true"
                 android:src="@android:drawable/star_big_on"
-                android:layout_centerVertical="true"/>
+                android:layout_centerVertical="true"
+                android:onClick="@{() -> viewModel.settingsClick()}"/>
 
         </RelativeLayout>
 
