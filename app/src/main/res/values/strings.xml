@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">GA WebView</string>
+    <string name="activity_main_url_edittext_hint">Enter url here</string>
+</resources>
