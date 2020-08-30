@@ -32,8 +32,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        startActivity(Intent(this, SplashActivity::class.java))
-
         //changing statusbar color and navigationbar color
         if (Build.VERSION.SDK_INT >= 21) {
             val window = this.window
