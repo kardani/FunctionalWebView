@@ -1,71 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
     <data>
         <variable
             name="viewModel"
             type="com.kardani.fwebview.MainViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".MainActivity">
+    <androidx.constraintlayout.widget.ConstraintLayout
 
-        <RelativeLayout
-            android:id="@+id/relativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="?android:attr/actionBarSize"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@color/toolbar_color">
 
-            <androidx.appcompat.widget.AppCompatAutoCompleteTextView
-                android:id="@+id/etUrl"
+            <RelativeLayout
+                android:id="@+id/relativeLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_toLeftOf="@+id/btnSettings"
-                android:hint="@string/activity_main_url_edittext_hint"
-                android:inputType="textWebEmailAddress"/>
+                android:layout_height="match_parent">
 
-            <ImageView
-                android:id="@+id/btnSettings"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_alignParentRight="true"
-                android:src="@android:drawable/star_big_on"
-                android:layout_centerVertical="true"
-                android:onClick="@{() -> viewModel.settingsClick()}"/>
+                <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                    android:id="@+id/etUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_toLeftOf="@+id/btnSettings"
+                    android:hint="@string/activity_main_url_edittext_hint"
+                    android:textColorHint="@color/text_color_hint"
+                    android:textSize="@dimen/text_size_default"
+                    android:textColor="@color/text_color_dark"
+                    android:gravity="start|center_vertical"
+                    android:inputType="textWebEmailAddress"
+                    android:background="@drawable/url_box_background"
+                    android:layout_centerVertical="true"/>
 
-        </RelativeLayout>
+                <ImageView
+                    android:id="@+id/btnSettings"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="6dp"
+                    android:layout_alignParentRight="true"
+                    app:srcCompat="@drawable/ic_baseline_settings_24"
+                    android:layout_centerVertical="true"
+                    android:onClick="@{() -> viewModel.settingsClick()}"
+                    tools:ignore="VectorDrawableCompat" />
+
+            </RelativeLayout>
+
+        </androidx.appcompat.widget.Toolbar>
+
 
         <WebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/relativeLayout" />
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
         <!-- Loading Dialog -->
         <RelativeLayout
             android:id="@+id/lytProgress"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            visible="@{viewModel.loading}"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:background="#aa000000"
-            visible="@{viewModel.loading}">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                >
+                android:layout_height="match_parent">
+
                 <ProgressBar
                     android:id="@+id/prgLoading"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    />
+                    android:layout_centerInParent="true" />
 
 
             </RelativeLayout>

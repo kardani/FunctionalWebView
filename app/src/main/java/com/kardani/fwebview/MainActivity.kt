@@ -5,10 +5,13 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.util.Patterns
 import android.view.KeyEvent
 import android.view.View
-import android.webkit.*
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,7 +21,6 @@ import androidx.preference.PreferenceManager
 import com.kardani.fwebview.databinding.ActivityMainBinding
 import com.kardani.fwebview.settings.SettingsActivity
 import org.koin.android.viewmodel.ext.android.viewModel
-import java.net.URI
 
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -41,6 +43,7 @@ class MainActivity : AppCompatActivity() {
 
         // Observer url from ViewModel and load in WebView
         viewModel.currentUrl.observe(this, Observer { url ->
+            binding.etUrl.setText(url)
             loadUrl(url)
         })
 
@@ -54,23 +57,23 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         })
 
-        configWebView()
+        // Observer url from ViewModel and load in WebView
+        viewModel.suggestedUrls.observe(this, Observer { list ->
+            val adapter: ArrayAdapter<String> =
+                ArrayAdapter(this, android.R.layout.simple_list_item_1, list.toList())
 
+            binding.etUrl.threshold = 2
+            binding.etUrl.setAdapter(adapter)
+        })
+
+        configWebView()
 
         binding.etUrl.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
 
-                val url = binding.etUrl.text?.toString()
-
-                if (url.isNullOrEmpty()) {
-                    return@OnKeyListener false
+                binding.etUrl.text?.let {
+                    viewModel.newUrl(it.toString())
                 }
-
-                if (!URLUtil.isValidUrl(url) || !Patterns.WEB_URL.matcher(url).matches()) {
-                    return@OnKeyListener false
-                }
-
-                viewModel.newUrl(url)
 
                 return@OnKeyListener true
             }
@@ -84,9 +87,11 @@ class MainActivity : AppCompatActivity() {
         binding.webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(viewx: WebView, urlx: String): Boolean {
                 refreshConfig()
+                viewModel.newUrl(urlx)
                 viewx.loadUrl(urlx)
                 return false
             }
+
         }
 
         binding.webView.webChromeClient = object : WebChromeClient(){
@@ -116,6 +121,12 @@ class MainActivity : AppCompatActivity() {
 
 
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            CookieManager.getInstance().setAcceptThirdPartyCookies(binding.webView, true)
+//        }else{
+//            CookieManager.getInstance().setAcceptCookie(true)
+//        }
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //            val cookieManager = CookieManager.getInstance()
 //            cookieManager.setAcceptCookie(true)
 //            cookieManager.setAcceptThirdPartyCookies(binding.webView, true)
@@ -123,6 +134,7 @@ class MainActivity : AppCompatActivity() {
 //
 //        binding.webView.settings.setAppCachePath(applicationContext.filesDir.absolutePath + "/cache")
 //        binding.webView.settings.databaseEnabled = true
+
     }
 
     private fun loadUrl(url: String){
@@ -167,7 +179,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             )
             val v = toast.view.findViewById<TextView>(android.R.id.message)
-//        v.setTypeface(font)
             v.textSize = 13f
             toast.show()
             Handler().postDelayed({ doubleBackToExitPressedOnce = false }, 2000)

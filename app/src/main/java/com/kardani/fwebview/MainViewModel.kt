@@ -21,24 +21,31 @@ class MainViewModel(private val urlHistory : UrlHistory, private val appPreferen
     private var _currentUrl = MutableLiveData<String>()
     val currentUrl : LiveData<String> = _currentUrl
 
-    private var _suggestedUrls = MutableLiveData<Set<String>>()
-    val suggestedUrls : LiveData<Set<String>> = _suggestedUrls
+    private var _suggestedUrls = MutableLiveData<List<String>>()
+    val suggestedUrls : LiveData<List<String>> = _suggestedUrls
 
     val navigateSettings = LiveEvent<Boolean>()
 
     init {
         _currentUrl.value = urlHistory.getLast()
+        _suggestedUrls.value = urlHistory.filterUrls("")
     }
 
     fun newUrl(url: String){
 
-        if(!validUrl(url)){
+        var newUrl = url
+
+        if(!newUrl.startsWith("http://") && !newUrl.startsWith("https://")){
+            newUrl = "https://$url"
+        }
+
+        if(!validUrl(newUrl)){
             return
         }
 
-        urlHistory.addUrl(url)
+        urlHistory.addUrl(newUrl)
 
-        _currentUrl.value = url
+        _currentUrl.value = newUrl
     }
 
     fun loadProgress(progress: Int){
