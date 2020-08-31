@@ -67,19 +67,8 @@ class SettingsActivity : AppCompatActivity(),
 
     class HeaderFragment : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            setPreferencesFromResource(R.xml.header_preferences, rootKey)
+            setPreferencesFromResource(R.xml.main_preferences, rootKey)
         }
     }
 
-    class MessagesFragment : PreferenceFragmentCompat() {
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            setPreferencesFromResource(R.xml.messages_preferences, rootKey)
-        }
-    }
-
-    class SyncFragment : PreferenceFragmentCompat() {
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-            setPreferencesFromResource(R.xml.sync_preferences, rootKey)
-        }
-    }
 }

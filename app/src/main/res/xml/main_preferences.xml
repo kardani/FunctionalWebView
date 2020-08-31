@@ -1,0 +1,24 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        app:key="cache"
+        app:title="@string/pref_cache"
+        app:summaryOff="@string/pref_cache_summary_off"
+        app:summaryOn="@string/pref_cache_summary_on"
+        app:defaultValue="true"/>
+
+    <SwitchPreferenceCompat
+        app:key="javascript"
+        app:summaryOff="@string/pref_Javascript_summary_off"
+        app:summaryOn="@string/pref_Javascript_summary_on"
+        app:title="@string/pref_Javascript"
+        app:defaultValue="true"/>
+
+    <SwitchPreferenceCompat
+        app:key="loading"
+        app:summaryOff="@string/pref_loading_summary_off"
+        app:summaryOn="@string/pref_loading_summary_on"
+        app:title="@string/pref_loading"
+        app:defaultValue="true"/>
+
+</PreferenceScreen>

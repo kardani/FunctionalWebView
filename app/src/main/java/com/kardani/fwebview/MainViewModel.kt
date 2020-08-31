@@ -1,16 +1,17 @@
 package com.kardani.fwebview
 
+import android.content.SharedPreferences
 import android.util.Log
 import android.util.Patterns
-import android.view.View
 import android.webkit.URLUtil
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kardani.fwebview.local.UrlHistory
+import com.kardani.fwebview.utils.AppPreferences
 import com.kardani.fwebview.utils.LiveEvent
 
-class MainViewModel(private val urlHistory : UrlHistory) : ViewModel() {
+class MainViewModel(private val urlHistory : UrlHistory, private val appPreferences: AppPreferences) : ViewModel() {
 
 
 
@@ -41,12 +42,27 @@ class MainViewModel(private val urlHistory : UrlHistory) : ViewModel() {
     }
 
     fun loadProgress(progress: Int){
+
+        if(!appPreferences.isLoadingEnable()){
+            _loading.value = false
+            return
+        }
+
         _loading.value = progress < 100
     }
 
     fun settingsClick(){
         navigateSettings.postValue(true)
     }
+
+    fun isCacheEnable() : Boolean{
+        return appPreferences.isCacheEnable()
+    }
+
+    fun isJavascriptEnable() : Boolean{
+        return appPreferences.isJavascriptEnable()
+    }
+
 
     private fun validUrl(url: String) : Boolean{
 

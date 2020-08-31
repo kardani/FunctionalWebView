@@ -5,21 +5,20 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.util.Patterns
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
 import android.webkit.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
+import androidx.preference.PreferenceManager
 import com.kardani.fwebview.databinding.ActivityMainBinding
 import com.kardani.fwebview.settings.SettingsActivity
 import org.koin.android.viewmodel.ext.android.viewModel
+import java.net.URI
 
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -32,30 +31,59 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        PreferenceManager.setDefaultValues(this, R.xml.main_preferences, false);
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
-
-
-
         supportActionBar?.apply { hide() }
 
+
         // Observer url from ViewModel and load in WebView
-        viewModel.currentUrl.observe(this, Observer{ url ->
+        viewModel.currentUrl.observe(this, Observer { url ->
             loadUrl(url)
         })
 
-        viewModel.navigateSettings.observe(this, Observer{ navigate ->
+        // Observer navigate to settings
+        viewModel.navigateSettings.observe(this, Observer { navigate ->
 
-            if(!navigate){
+            if (!navigate) {
                 return@Observer
             }
 
             startActivity(Intent(this, SettingsActivity::class.java))
         })
 
+        configWebView()
+
+
+        binding.etUrl.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+
+                val url = binding.etUrl.text?.toString()
+
+                if (url.isNullOrEmpty()) {
+                    return@OnKeyListener false
+                }
+
+                if (!URLUtil.isValidUrl(url) || !Patterns.WEB_URL.matcher(url).matches()) {
+                    return@OnKeyListener false
+                }
+
+                viewModel.newUrl(url)
+
+                return@OnKeyListener true
+            }
+            false
+        })
+
+    }
+
+    private fun configWebView(){
+
         binding.webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(viewx: WebView, urlx: String): Boolean {
+                refreshConfig()
                 viewx.loadUrl(urlx)
                 return false
             }
@@ -69,40 +97,38 @@ class MainActivity : AppCompatActivity() {
                 super.onProgressChanged(view, newProgress)
             }
         }
+    }
 
-        binding.etUrl.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
-            if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+    private fun refreshConfig(){
 
-                val url = binding.etUrl.text?.toString()
+        //cache enable
+        binding.webView.settings.setAppCacheEnabled(viewModel.isCacheEnable())
+        if(!viewModel.isCacheEnable()){
+            binding.webView.settings.cacheMode = WebSettings.LOAD_NO_CACHE
+        }else{
+            binding.webView.settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
+        }
 
-                if(url.isNullOrEmpty()){
-                    return@OnKeyListener false
-                }
 
-                if(!URLUtil.isValidUrl(url) || !Patterns.WEB_URL.matcher(url).matches()){
-                    return@OnKeyListener false
-                }
+        //enable javascript
+        binding.webView.settings.domStorageEnabled = viewModel.isJavascriptEnable()
+        binding.webView.settings.javaScriptEnabled = viewModel.isJavascriptEnable()
 
-                viewModel.newUrl(url)
 
-                return@OnKeyListener true
-            }
-            false
-        })
-
-        setContentView(binding.root)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            val cookieManager = CookieManager.getInstance()
+//            cookieManager.setAcceptCookie(true)
+//            cookieManager.setAcceptThirdPartyCookies(binding.webView, true)
+//        }
+//
+//        binding.webView.settings.setAppCachePath(applicationContext.filesDir.absolutePath + "/cache")
+//        binding.webView.settings.databaseEnabled = true
     }
 
     private fun loadUrl(url: String){
 
-        //cache enable
-        binding.webView.settings.setAppCacheEnabled(false);
-        binding.webView.settings.cacheMode = WebSettings.LOAD_NO_CACHE;
 
-        //enable javascript
-        binding.webView.settings.domStorageEnabled = true;
-        binding.webView.settings.javaScriptEnabled = true
-
+        refreshConfig()
 
         binding.webView.loadUrl(url)
 
@@ -123,16 +149,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun getStatusBarHeight(): Int {
-        var result = 0
-        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-        if (resourceId > 0) {
-            result = resources.getDimensionPixelSize(resourceId)
-        }
-        return result
-    }
-
-
     private var doubleBackToExitPressedOnce = false
     override fun onBackPressed() {
 
@@ -141,7 +157,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             if (doubleBackToExitPressedOnce) {
                 super.onBackPressed()
-//            overridePendingTransition(0, R.anim.anim_activity_fade_out)
                 return
             }
             doubleBackToExitPressedOnce = true
